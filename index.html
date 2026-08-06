@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent Reach: A Switchboard for AI Agents</title>
+  <style>
+    :root { --ink:#242424; --muted:#6b6b6b; --line:#e6e6e6; --paper:#fff; --accent:#1877f2; --soft:#f7f7f7; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:#f3f3f3; font-family: Georgia, 'Times New Roman', serif; line-height:1.68; }
+    main { max-width:760px; margin:38px auto; padding:64px 72px 90px; background:var(--paper); box-shadow:0 2px 18px #00000012; }
+    h1 { font:700 45px/1.08 Arial, Helvetica, sans-serif; letter-spacing:-1.7px; margin:0 0 18px; }
+    h2 { font:700 29px/1.2 Arial, Helvetica, sans-serif; letter-spacing:-.5px; margin:48px 0 14px; }
+    .dek { color:var(--muted); font:20px/1.45 Arial, Helvetica, sans-serif; margin:0 0 28px; }
+    .meta { color:var(--muted); font:14px Arial, Helvetica, sans-serif; border-bottom:1px solid var(--line); padding-bottom:25px; margin-bottom:34px; }
+    p, li { font-size:18px; }
+    a { color:var(--accent); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    blockquote { border-left:3px solid var(--ink); margin:28px 0; padding:5px 22px; font-size:23px; line-height:1.4; }
+    figure { margin:32px 0; padding:20px 0 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+    figure svg, figure img { display:block; width:100%; height:auto; }
+    figure img { max-height:430px; object-fit:contain; background:#fafafa; }
+    .inline-arch { background:#071016; color:#e8f2f5; border:1px solid #23414b; border-radius:12px; padding:22px; font:15px/1.5 Arial, Helvetica, sans-serif; background-image:linear-gradient(rgba(102,176,190,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(102,176,190,.055) 1px,transparent 1px); background-size:30px 30px; }
+    .inline-arch * { box-sizing:border-box; }
+    .inline-arch .ia-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:17px; }
+    .inline-arch button { color:#e8f2f5; font:600 12px Arial,sans-serif; cursor:pointer; border:1px solid rgba(55,217,231,.45); background:rgba(55,217,231,.09); border-radius:7px; padding:8px 11px; }
+    .inline-arch button:hover { background:rgba(55,217,231,.2); }
+    .inline-arch button.ia-primary { background:#37d9e7; color:#071016; border-color:#37d9e7; }
+    .inline-arch button.ia-danger { color:#ffb5b5; border-color:rgba(255,115,115,.6); }
+    .inline-arch .ia-status { margin-left:auto; color:#9ab0bb; font:11px monospace; }
+    .inline-arch .ia-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:#67e39a; margin-right:5px; }
+    .inline-arch .ia-dot.warn { background:#ffbe55; }
+    .inline-arch .ia-dot.fail { background:#ff7373; }
+    .inline-arch .ia-layer { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:15px 17px; border:1px solid rgba(141,187,198,.22); border-radius:11px; background:linear-gradient(135deg,rgba(20,44,55,.96),rgba(10,25,33,.96)); cursor:pointer; transition:.18s; }
+    .inline-arch .ia-layer:hover,.inline-arch .ia-layer.ia-selected { border-color:rgba(55,217,231,.8); transform:translateY(-2px); }
+    .inline-arch .ia-num { color:#37d9e7; font:700 10px monospace; margin-right:10px; }
+    .inline-arch .ia-layer h3 { display:inline; color:#e8f2f5; margin:0; font-size:15px; }
+    .inline-arch .ia-layer p { color:#9ab0bb; display:block; margin:5px 0 0 25px; font-size:13px; }
+    .inline-arch .ia-code { color:#c8edf1; font:11px monospace; background:#0003; padding:7px 9px; border-radius:6px; white-space:nowrap; }
+    .inline-arch .ia-connector { height:22px; border-left:2px solid #37d9e7; width:0; margin:auto; position:relative; }
+    .inline-arch .ia-connector:after { content:""; position:absolute; bottom:-1px; left:-5px; border-left:4px solid transparent; border-right:4px solid transparent; border-top:6px solid #37d9e7; }
+    .inline-arch .ia-route-label { color:#37d9e7; font:700 10px monospace; letter-spacing:1px; text-transform:uppercase; margin:15px 0 8px; }
+    .inline-arch .ia-routes { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+    .inline-arch .ia-route { min-height:112px; padding:13px; border:1px solid rgba(141,187,198,.22); border-radius:10px; background:linear-gradient(135deg,rgba(20,44,55,.96),rgba(10,25,33,.96)); cursor:pointer; position:relative; }
+    .inline-arch .ia-route:hover,.inline-arch .ia-route.ia-active { border-color:#67e39a; box-shadow:0 0 20px #67e39a1f; }
+    .inline-arch .ia-route.ia-failed { border-color:#ff7373; opacity:.7; }
+    .inline-arch .ia-route strong { display:block; font-size:14px; margin-bottom:5px; }
+    .inline-arch .ia-route span { color:#9ab0bb; font-size:12px; }
+    .inline-arch .ia-pill { position:absolute; top:9px; right:9px; color:#67e39a; font:9px monospace; }
+    .inline-arch .ia-pill.warn { color:#ffbe55; }.inline-arch .ia-pill.fail { color:#ff7373; }
+    .inline-arch .ia-lower { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:13px; }
+    .inline-arch .ia-box { padding:13px; border:1px solid rgba(141,187,198,.22); border-radius:10px; background:#0a151c; }
+    .inline-arch .ia-box-title { color:#37d9e7; font:11px monospace; margin-bottom:8px; }
+    .inline-arch .ia-copy { color:#9ab0bb; font-size:13px; min-height:43px; }
+    .inline-arch .ia-log { color:#b9d9df; font:11px/1.65 monospace; min-height:70px; }
+    .inline-arch .ia-log .ok { color:#67e39a; display:block; }.inline-arch .ia-log .warn { color:#ffbe55; display:block; }.inline-arch .ia-log .route { color:#37d9e7; display:block; }
+    figcaption { color:var(--muted); font:13px/1.5 Arial, Helvetica, sans-serif; padding:12px 0 17px; }
+    .note { background:var(--soft); border-radius:8px; padding:18px 20px; margin:28px 0; font:15px/1.55 Arial, Helvetica, sans-serif; }
+    code { background:#f0f0f0; border-radius:4px; padding:2px 5px; font-size:.9em; }
+    pre { background:#202124; color:#f4f4f4; padding:18px; border-radius:7px; overflow:auto; font:14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .references li { font-size:15px; margin:8px 0; }
+    .disclosure { color:var(--muted); font:14px/1.55 Arial, Helvetica, sans-serif; border-top:1px solid var(--line); margin-top:45px; padding-top:22px; }
+    /* The interactive explorer above replaces the older static routing sketches. */
+    .legacy-figure { display:none; }
+    @media (max-width:700px) { main { margin:0; padding:38px 24px 60px; } h1 { font-size:37px; } p, li { font-size:17px; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Agent Reach: A Switchboard for AI Agents</h1>
+  <p class="dek">What it does, where it sits, and why it helps agents navigate the messy collection of tools that make up the internet.</p>
+  <p class="meta">Research notes, diagrams, and a small confession about asking an AI to help write a blog about AI tooling.</p>
+
+  <p>I started writing about Agent Reach by putting it in the wrong mental drawer.</p>
+
+  <p>First I compared it with MCP. Then I wondered whether it was more like LeanIX. Then “Artifactory” came to mind. None of those comparisons was completely absurd, which was the problem: each one explained a small piece and quietly confused the rest.</p>
+
+  <p>So here is the version I wish I had read first.</p>
+
+  <h2>Agent Reach, in ordinary language</h2>
+  <p><a href="https://github.com/Panniantong/Agent-Reach/blob/main/docs/README_en.md">Agent Reach</a> is a way of giving an AI agent practical access to a messy collection of internet tools.</p>
+
+  <p>Not “the internet” as one beautiful service with one beautiful API. The actual internet: GitHub has one route, YouTube another, Reddit may want a login, a website may need a reader, and some tool you relied on yesterday may have quietly stopped working.</p>
+
+  <p>Agent Reach helps with the boring connective tissue:</p>
+  <ul>
+    <li>finding an access method;</li>
+    <li>installing the supporting tools;</li>
+    <li>checking which routes work on the current machine;</li>
+    <li>choosing a primary route and possible fallback;</li>
+    <li>giving the agent instructions about how to use the result.</li>
+  </ul>
+
+  <p>The project’s own description is useful here: Agent Reach handles selection, installation, health checks, and routing, while the agent uses the upstream tools directly. In other words, it is less “a new web scraper” and more “someone put labels on the drawers and checked which ones still open.”</p>
+
+  <h2>Try the architecture first</h2>
+  <p>Before the comparisons, here is the whole idea in one picture. Click a layer to see its job, run a request, then break the primary route to watch the fallback take over.</p>
+  <div class="inline-arch" id="inline-arch">
+    <div class="ia-toolbar"><button class="ia-primary" id="ia-run">▶ Run request</button><button class="ia-danger" id="ia-break">Break primary</button><button id="ia-reset">Reset</button><span class="ia-status"><i class="ia-dot" id="ia-dot"></i><span id="ia-status-text">system ready</span></span></div>
+    <div class="ia-layer ia-selected" data-ia-detail="agent"><div><span class="ia-num">01 / AGENT</span><h3>AI agent</h3><p>Decides what information is needed.</p></div><span class="ia-code">“find this out”</span></div>
+    <div class="ia-connector"></div>
+    <div class="ia-layer" data-ia-detail="guidance"><div><span class="ia-num">02 / GUIDANCE</span><h3>Skill instructions</h3><p>Explains which route to try and how to call it.</p></div><span class="ia-code">SKILL.md</span></div>
+    <div class="ia-connector"></div>
+    <div class="ia-layer" data-ia-detail="registry"><div><span class="ia-num">03 / REGISTRY</span><h3>Channel registry + doctor</h3><p>Maps platforms to candidates and checks what works.</p></div><span class="ia-code">install → probe → select</span></div>
+    <div class="ia-connector"></div>
+    <div class="ia-route-label">04 / ROUTING — choose a way to reach the source</div>
+    <div class="ia-routes"><div class="ia-route ia-active" data-ia-route="cli"><span class="ia-pill" id="ia-cli-pill">PRIMARY</span><strong>Installed command-line tools</strong><span>Small programs that read a service directly. Examples: GitHub’s <code>gh</code>, YouTube’s <code>yt-dlp</code>.</span></div><div class="ia-route" data-ia-route="browser"><span class="ia-pill warn">FALLBACK</span><strong>Existing browser session</strong><span>Useful when a website requires the user’s logged-in browser context.</span></div><div class="ia-route" data-ia-route="mcp"><span class="ia-pill warn">OPTIONAL</span><strong>Connected service</strong><span>A remote or local service that exposes a standard tool interface, such as MCP.</span></div></div>
+    <div class="ia-connector"></div>
+    <div class="ia-layer" data-ia-detail="target"><div><span class="ia-num">05 / TARGET</span><h3>Target platform</h3><p>The public service or data source the agent needed to reach.</p></div><span class="ia-code">GitHub · YouTube · Reddit · web</span></div>
+    <div class="ia-lower"><div class="ia-box"><div class="ia-box-title" id="ia-detail-title">SELECTED: AI AGENT</div><div class="ia-copy" id="ia-detail-copy">The agent owns the question. Agent Reach makes useful routes available.</div></div><div class="ia-box"><div class="ia-box-title">WHAT JUST HAPPENED?</div><div class="ia-log" id="ia-log">Click “Run request” to watch the route being selected.</div></div></div>
+  </div>
+  <p class="note">This interactive explorer is inline in this local preview. Medium may require a static screenshot, GIF, or video when publishing because arbitrary JavaScript will not travel with pasted article text.</p>
+
+  <figure class="legacy-figure">
+    <svg viewBox="0 0 720 260" role="img" aria-label="An AI agent sends a research request to Agent Reach, which checks and routes it to upstream tools such as GitHub, web readers, search providers, and browser sessions.">
+      <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#1877f2"/></marker></defs>
+      <rect x="25" y="91" width="145" height="76" rx="12" fill="#202124"/><text x="97" y="124" text-anchor="middle" fill="white" font-family="Arial" font-size="18" font-weight="700">Agent</text><text x="97" y="147" text-anchor="middle" fill="#c8c8c8" font-family="Arial" font-size="13">“find this out”</text>
+      <line x1="171" y1="129" x2="270" y2="129" stroke="#1877f2" stroke-width="3" marker-end="url(#a)"/>
+      <rect x="275" y="61" width="175" height="137" rx="12" fill="#e8f1ff" stroke="#1877f2" stroke-width="2"/><text x="362" y="98" text-anchor="middle" fill="#1255ad" font-family="Arial" font-size="19" font-weight="700">Agent Reach</text><text x="362" y="127" text-anchor="middle" fill="#333" font-family="Arial" font-size="13">install</text><text x="362" y="149" text-anchor="middle" fill="#333" font-family="Arial" font-size="13">check</text><text x="362" y="171" text-anchor="middle" fill="#333" font-family="Arial" font-size="13">route</text>
+      <line x1="451" y1="91" x2="540" y2="42" stroke="#1877f2" stroke-width="2.5" marker-end="url(#a)"/><line x1="451" y1="115" x2="540" y2="112" stroke="#1877f2" stroke-width="2.5" marker-end="url(#a)"/><line x1="451" y1="145" x2="540" y2="182" stroke="#1877f2" stroke-width="2.5" marker-end="url(#a)"/><line x1="451" y1="169" x2="540" y2="239" stroke="#1877f2" stroke-width="2.5" marker-end="url(#a)"/>
+      <rect x="545" y="15" width="150" height="47" rx="8" fill="#f3f3f3"/><text x="620" y="44" text-anchor="middle" fill="#333" font-family="Arial" font-size="13">GitHub / CLI</text>
+      <rect x="545" y="88" width="150" height="47" rx="8" fill="#f3f3f3"/><text x="620" y="117" text-anchor="middle" fill="#333" font-family="Arial" font-size="13">web / search</text>
+      <rect x="545" y="161" width="150" height="47" rx="8" fill="#f3f3f3"/><text x="620" y="190" text-anchor="middle" fill="#333" font-family="Arial" font-size="13">browser session</text>
+      <rect x="545" y="214" width="150" height="37" rx="8" fill="#f3f3f3"/><text x="620" y="237" text-anchor="middle" fill="#333" font-family="Arial" font-size="12">fallback route</text>
+    </svg>
+    <figcaption>My own conceptual diagram, based on the routing and upstream-tool model described in the <a href="https://github.com/Panniantong/Agent-Reach/blob/main/docs/README_en.md">Agent Reach documentation</a>.</figcaption>
+  </figure>
+
+  <figure class="legacy-figure">
+    <svg viewBox="0 0 720 390" role="img" aria-label="Detailed Agent Reach architecture showing the agent skill instructions, channel registry, backend candidates, health probes, and upstream tools.">
+      <defs><marker id="c" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#1877f2"/></marker></defs>
+      <rect x="30" y="28" width="660" height="56" rx="10" fill="#202124"/><text x="360" y="62" text-anchor="middle" fill="white" font-family="Arial" font-size="17" font-weight="700">AI agent receives a research request</text>
+      <line x1="360" y1="86" x2="360" y2="111" stroke="#1877f2" stroke-width="3" marker-end="url(#c)"/>
+      <rect x="80" y="116" width="190" height="70" rx="10" fill="#f5f1ff" stroke="#8064c9" stroke-width="2"/><text x="175" y="145" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="#513a9a">SKILL.md</text><text x="175" y="168" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">how to choose a route</text>
+      <rect x="450" y="116" width="190" height="70" rx="10" fill="#e8f1ff" stroke="#1877f2" stroke-width="2"/><text x="545" y="145" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="#1255ad">Channel registry</text><text x="545" y="168" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">platform → candidates</text>
+      <line x1="360" y1="84" x2="175" y2="112" stroke="#1877f2" stroke-width="2" marker-end="url(#c)"/><line x1="360" y1="84" x2="545" y2="112" stroke="#1877f2" stroke-width="2" marker-end="url(#c)"/>
+      <line x1="270" y1="151" x2="330" y2="215" stroke="#1877f2" stroke-width="2" marker-end="url(#c)"/><line x1="450" y1="151" x2="390" y2="215" stroke="#1877f2" stroke-width="2" marker-end="url(#c)"/>
+      <rect x="220" y="220" width="280" height="68" rx="10" fill="#fff5e8" stroke="#d18b2e" stroke-width="2"/><text x="360" y="249" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="#9b5c00">agent-reach doctor</text><text x="360" y="271" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">probes real availability, not just installation</text>
+      <line x1="360" y1="289" x2="360" y2="313" stroke="#1877f2" stroke-width="3" marker-end="url(#c)"/>
+      <rect x="30" y="320" width="150" height="46" rx="8" fill="#f3f3f3"/><text x="105" y="348" text-anchor="middle" font-family="Arial" font-size="12">gh / GitHub</text>
+      <rect x="200" y="320" width="150" height="46" rx="8" fill="#f3f3f3"/><text x="275" y="348" text-anchor="middle" font-family="Arial" font-size="12">yt-dlp / YouTube</text>
+      <rect x="370" y="320" width="150" height="46" rx="8" fill="#f3f3f3"/><text x="445" y="348" text-anchor="middle" font-family="Arial" font-size="12">Jina / web</text>
+      <rect x="540" y="320" width="150" height="46" rx="8" fill="#f3f3f3"/><text x="615" y="348" text-anchor="middle" font-family="Arial" font-size="12">browser / MCP</text>
+    </svg>
+    <figcaption>Agent Reach’s working parts, shown as a conceptual architecture: instructions tell the agent what to try, the registry lists candidates, <code>doctor</code> probes them, and the agent ultimately calls the upstream tool.</figcaption>
+  </figure>
+
+  <figure class="legacy-figure">
+    <svg viewBox="0 0 720 230" role="img" aria-label="Agent Reach lifecycle showing install, doctor, route, and read stages.">
+      <defs><marker id="d" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#1877f2"/></marker></defs>
+      <rect x="18" y="44" width="145" height="112" rx="12" fill="#f3f3f3" stroke="#aaa"/><text x="90" y="78" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700">1. Install</text><text x="90" y="104" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">dependencies</text><text x="90" y="124" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">platform tools</text><text x="90" y="144" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">agent guidance</text>
+      <line x1="165" y1="100" x2="190" y2="100" stroke="#1877f2" stroke-width="3" marker-end="url(#d)"/>
+      <rect x="195" y="44" width="145" height="112" rx="12" fill="#fff5e8" stroke="#d18b2e"/><text x="267" y="78" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700" fill="#9b5c00">2. Doctor</text><text x="267" y="104" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">test commands</text><text x="267" y="124" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">check auth</text><text x="267" y="144" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">report fixes</text>
+      <line x1="342" y1="100" x2="367" y2="100" stroke="#1877f2" stroke-width="3" marker-end="url(#d)"/>
+      <rect x="372" y="44" width="145" height="112" rx="12" fill="#e8f1ff" stroke="#1877f2"/><text x="444" y="78" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700" fill="#1255ad">3. Route</text><text x="444" y="104" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">select active</text><text x="444" y="124" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">prefer primary</text><text x="444" y="144" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">keep fallback</text>
+      <line x1="519" y1="100" x2="544" y2="100" stroke="#1877f2" stroke-width="3" marker-end="url(#d)"/>
+      <rect x="549" y="44" width="145" height="112" rx="12" fill="#f3f3f3" stroke="#aaa"/><text x="621" y="78" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700">4. Read</text><text x="621" y="104" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">agent calls</text><text x="621" y="124" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">upstream tool</text><text x="621" y="144" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">result returns</text>
+      <text x="360" y="199" text-anchor="middle" font-family="Arial" font-size="13" fill="#6b6b6b">The point is to make this lifecycle repeatable when tools and platforms change.</text>
+    </svg>
+    <figcaption>A simplified lifecycle. The agent does not hand its entire job to Agent Reach; Agent Reach prepares and checks the routes the agent can use.</figcaption>
+  </figure>
+
+  <figure class="legacy-figure">
+    <svg viewBox="0 0 720 260" role="img" aria-label="Primary and fallback routing diagram showing a failed primary backend and a working fallback backend.">
+      <defs><marker id="e" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#1877f2"/></marker></defs>
+      <rect x="24" y="92" width="140" height="70" rx="10" fill="#202124"/><text x="94" y="121" text-anchor="middle" fill="white" font-family="Arial" font-size="16" font-weight="700">Agent</text><text x="94" y="143" text-anchor="middle" fill="#c8c8c8" font-family="Arial" font-size="12">needs YouTube data</text>
+      <line x1="165" y1="127" x2="255" y2="127" stroke="#1877f2" stroke-width="3" marker-end="url(#e)"/>
+      <rect x="260" y="64" width="175" height="125" rx="12" fill="#e8f1ff" stroke="#1877f2" stroke-width="2"/><text x="347" y="98" text-anchor="middle" fill="#1255ad" font-family="Arial" font-size="18" font-weight="700">Agent Reach</text><text x="347" y="125" text-anchor="middle" fill="#333" font-family="Arial" font-size="13">active route</text><text x="347" y="147" text-anchor="middle" fill="#333" font-family="Arial" font-size="13">fallback list</text><text x="347" y="169" text-anchor="middle" fill="#333" font-family="Arial" font-size="13">health result</text>
+      <line x1="437" y1="100" x2="532" y2="62" stroke="#c33" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#e)"/><line x1="437" y1="156" x2="532" y2="194" stroke="#279447" stroke-width="3" marker-end="url(#e)"/>
+      <rect x="537" y="27" width="158" height="65" rx="10" fill="#fff0f0" stroke="#c33"/><text x="616" y="55" text-anchor="middle" font-family="Arial" font-size="15" font-weight="700" fill="#a21e1e">Primary fails</text><text x="616" y="76" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">blocked / expired / broken</text>
+      <rect x="537" y="166" width="158" height="65" rx="10" fill="#effaf2" stroke="#279447"/><text x="616" y="194" text-anchor="middle" font-family="Arial" font-size="15" font-weight="700" fill="#18733a">Fallback works</text><text x="616" y="215" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">agent continues</text>
+    </svg>
+    <figcaption>The part that makes Agent Reach more than an installer: access paths can be ordered, tested, and replaced when the preferred route stops working.</figcaption>
+  </figure>
+
+  <h2>What it is not</h2>
+  <p>It is not a universal API. It does not make every platform friendly. It cannot turn a login requirement into a philosophical suggestion. It does not guarantee that a fallback exists.</p>
+
+  <p>Some routes may use <code>gh</code>, <code>yt-dlp</code>, Jina Reader, RSS libraries, browser sessions, or MCP-connected search. The important thing is not the brand name of the individual tool. The important thing is that the agent has a maintained map of possible ways to get the job done.</p>
+
+  <h2>The diagram that helped me understand MCP</h2>
+  <p>MCP is the comparison I reached for first, so it deserves its own picture—but as a neighbouring concept, not as a component inside Agent Reach.</p>
+
+  <figure class="source-image">
+    <a href="https://medium.com/ux-planet/mcp-is-dead-cf16b667ba6d"><img src="https://miro.medium.com/v2/resize:fit:700/0*qkxnoK1RBPVHOiod.png" alt="MCP architecture diagram shown in the linked Medium article"></a>
+    <figcaption>This is the MCP architecture image used in <a href="https://medium.com/ux-planet/mcp-is-dead-cf16b667ba6d">Nick Babich’s article</a>. For the canonical explanation of the host/client/server model, see the <a href="https://modelcontextprotocol.io/docs/learn/architecture">official MCP architecture overview</a>. Review reuse rights before republishing this image.</figcaption>
+  </figure>
+
+  <p>MCP is a protocol for connecting an AI application to external tools and data. The official architecture describes a host coordinating clients, with each client connecting to an MCP server. That is a communication model.</p>
+
+  <p>Agent Reach is more concerned with the awkward questions surrounding the communication model:</p>
+  <ul>
+    <li>Which route should be installed?</li>
+    <li>Does it work here?</li>
+    <li>Does it need a cookie or an API key?</li>
+    <li>What is the backup plan?</li>
+  </ul>
+
+  <p>They are not enemies. They are just not the same layer. I had mistaken “uses MCP sometimes” for “is an MCP thing.” That is the sort of sentence that sounds confident until somebody asks what it actually means.</p>
+
+  <h2>Why LeanIX came to mind</h2>
+  <p>LeanIX is a much better analogy for the instinct behind Agent Reach: make a complicated landscape visible and manageable.</p>
+
+  <figure>
+    <svg viewBox="0 0 720 300" role="img" aria-label="Original conceptual LeanIX architecture diagram showing architecture facts flowing into a connected landscape, reports, and roadmaps.">
+      <defs><marker id="leanix-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#8064c9"/></marker></defs>
+      <rect x="28" y="105" width="175" height="92" rx="12" fill="#f5f1ff" stroke="#8064c9" stroke-width="2"/><text x="115" y="138" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700" fill="#513a9a">Architecture facts</text><text x="115" y="163" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">applications · tech · owners</text><text x="115" y="182" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">risks · lifecycle · costs</text>
+      <line x1="205" y1="151" x2="270" y2="151" stroke="#8064c9" stroke-width="3" marker-end="url(#leanix-arrow)"/>
+      <rect x="275" y="75" width="170" height="152" rx="12" fill="#f5f1ff" stroke="#8064c9" stroke-width="2"/><text x="360" y="111" text-anchor="middle" font-family="Arial" font-size="20" font-weight="700" fill="#513a9a">LeanIX</text><text x="360" y="139" text-anchor="middle" font-family="Arial" font-size="13" fill="#333">inventory + relationships</text><text x="360" y="164" text-anchor="middle" font-family="Arial" font-size="13" fill="#555">model the landscape</text><text x="360" y="189" text-anchor="middle" font-family="Arial" font-size="13" fill="#555">keep it current</text>
+      <line x1="447" y1="116" x2="512" y2="69" stroke="#8064c9" stroke-width="3" marker-end="url(#leanix-arrow)"/><line x1="447" y1="151" x2="512" y2="151" stroke="#8064c9" stroke-width="3" marker-end="url(#leanix-arrow)"/><line x1="447" y1="186" x2="512" y2="233" stroke="#8064c9" stroke-width="3" marker-end="url(#leanix-arrow)"/>
+      <rect x="517" y="39" width="175" height="52" rx="9" fill="#f3f3f3" stroke="#aaa"/><text x="604" y="70" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="#333">diagrams &amp; reports</text>
+      <rect x="517" y="125" width="175" height="52" rx="9" fill="#f3f3f3" stroke="#aaa"/><text x="604" y="156" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="#333">dependency views</text>
+      <rect x="517" y="211" width="175" height="52" rx="9" fill="#f3f3f3" stroke="#aaa"/><text x="604" y="242" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="#333">roadmaps &amp; decisions</text>
+      <text x="360" y="283" text-anchor="middle" font-family="Arial" font-size="13" fill="#6b6b6b">LeanIX models an organization’s architecture; it is not an Agent Reach component.</text>
+    </svg>
+    <figcaption>Original explanatory diagram based on SAP LeanIX’s descriptions of fact sheets, relationships, diagrams, and enterprise-architecture views. It is not an official SAP LeanIX screenshot; see <a href="https://www.leanix.net/en/blog/sap-leanix-diagrams-1">SAP LeanIX’s diagrams article</a> and its <a href="https://www.leanix.net/en/enterprise-architecture/features">enterprise-architecture features</a>.</figcaption>
+  </figure>
+
+  <p>LeanIX is an enterprise architecture system. It helps an organization maintain a view of applications, technology components, dependencies, risks, and roadmaps. The diagram is connected to an inventory of architecture facts.</p>
+
+  <p>Agent Reach does not belong inside LeanIX. LeanIX is not one of its backends. LeanIX is an adjacent analogy: both try to stop a complicated technology landscape from becoming a collection of tribal knowledge and abandoned spreadsheets.</p>
+
+  <h2>Why Artifactory came to mind</h2>
+  <p>Artifactory is another useful—but limited—analogy.</p>
+
+  <figure>
+    <svg viewBox="0 0 720 255" role="img" aria-label="A conceptual Artifactory repository diagram showing developers and CI clients resolving packages through a central repository.">
+      <defs><marker id="b" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#c47b18"/></marker></defs>
+      <rect x="25" y="84" width="140" height="72" rx="10" fill="#fff5e8" stroke="#d18b2e" stroke-width="2"/><text x="95" y="113" text-anchor="middle" font-family="Arial" font-size="15" font-weight="700" fill="#9b5c00">Developers</text><text x="95" y="136" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">package clients</text>
+      <rect x="285" y="54" width="165" height="132" rx="12" fill="#fff5e8" stroke="#d18b2e" stroke-width="2"/><text x="367" y="92" text-anchor="middle" font-family="Arial" font-size="20" font-weight="700" fill="#9b5c00">Artifactory</text><text x="367" y="119" text-anchor="middle" font-family="Arial" font-size="13" fill="#333">repository</text><text x="367" y="142" text-anchor="middle" font-family="Arial" font-size="13" fill="#555">store · resolve · trace</text><text x="367" y="165" text-anchor="middle" font-family="Arial" font-size="13" fill="#555">packages and binaries</text>
+      <rect x="555" y="84" width="140" height="72" rx="10" fill="#fff5e8" stroke="#d18b2e" stroke-width="2"/><text x="625" y="113" text-anchor="middle" font-family="Arial" font-size="15" font-weight="700" fill="#9b5c00">CI systems</text><text x="625" y="136" text-anchor="middle" font-family="Arial" font-size="12" fill="#555">build artifacts</text>
+      <line x1="166" y1="120" x2="280" y2="120" stroke="#c47b18" stroke-width="3" marker-end="url(#b)"/><line x1="555" y1="120" x2="455" y2="120" stroke="#c47b18" stroke-width="3" marker-end="url(#b)"/>
+      <text x="360" y="224" text-anchor="middle" font-family="Arial" font-size="13" fill="#6b6b6b">Packages are the object being managed—not live internet access.</text>
+    </svg>
+    <figcaption>Original conceptual diagram based on <a href="https://docs.jfrog.com/artifactory/docs/artifact-management">JFrog’s Artifactory documentation</a>. It is not an official JFrog architecture diagram.</figcaption>
+  </figure>
+
+  <p>Artifactory is a system of record for build artifacts: packages, binaries, and components that software teams deploy and resolve through repositories.</p>
+
+  <p>Agent Reach is not an artifact repository. It does not store your build outputs. The resemblance is that both put a layer between people and a messy set of underlying sources. Artifactory manages software artifacts; Agent Reach manages access routes.</p>
+
+  <h2>Where Agent Reach sits in the agent ecosystem</h2>
+  <p>This is the picture I should have drawn at the beginning:</p>
+
+  <figure>
+    <svg viewBox="0 0 720 360" role="img" aria-label="A layered diagram showing the AI application and agent at the top, Agent Reach as a capability layer in the middle, and internet platforms and upstream tools at the bottom. LeanIX and Artifactory appear outside the system as analogies, not components.">
+      <rect x="105" y="22" width="510" height="67" rx="12" fill="#202124"/><text x="360" y="52" text-anchor="middle" font-family="Arial" font-size="18" font-weight="700" fill="white">AI application / agent</text><text x="360" y="74" text-anchor="middle" font-family="Arial" font-size="13" fill="#c8c8c8">decides what information it needs</text>
+      <rect x="105" y="116" width="510" height="86" rx="12" fill="#e8f1ff" stroke="#1877f2" stroke-width="2"/><text x="360" y="148" text-anchor="middle" font-family="Arial" font-size="20" font-weight="700" fill="#1255ad">Agent Reach</text><text x="360" y="174" text-anchor="middle" font-family="Arial" font-size="13" fill="#333">install · health-check · select · route · document</text>
+      <rect x="105" y="229" width="510" height="87" rx="12" fill="#f3f3f3" stroke="#aaa"/><text x="360" y="260" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700" fill="#333">Upstream access methods</text><text x="360" y="286" text-anchor="middle" font-family="Arial" font-size="13" fill="#555">CLI · API · browser session · MCP server · local parser</text>
+      <line x1="360" y1="90" x2="360" y2="112" stroke="#1877f2" stroke-width="3" marker-end="url(#a)"/><line x1="360" y1="204" x2="360" y2="225" stroke="#1877f2" stroke-width="3" marker-end="url(#a)"/>
+      <rect x="15" y="130" width="75" height="62" rx="8" fill="#f5f1ff" stroke="#8064c9"/><text x="52" y="155" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#513a9a">LeanIX</text><text x="52" y="175" text-anchor="middle" font-family="Arial" font-size="10" fill="#555">analogy</text>
+      <rect x="630" y="130" width="75" height="62" rx="8" fill="#fff5e8" stroke="#d18b2e"/><text x="667" y="155" text-anchor="middle" font-family="Arial" font-size="12" font-weight="700" fill="#9b5c00">Artifactory</text><text x="667" y="175" text-anchor="middle" font-family="Arial" font-size="10" fill="#555">analogy</text>
+      <text x="360" y="348" text-anchor="middle" font-family="Arial" font-size="13" fill="#6b6b6b">LeanIX and Artifactory are shown for comparison only; they are not Agent Reach components.</text>
+    </svg>
+    <figcaption>Original ecosystem map. The layers are a synthesis of the cited project and product documentation, not a vendor-provided architecture.</figcaption>
+  </figure>
+
+  <h2>A note on “MCP is dead”</h2>
+  <p>The article <a href="https://medium.com/ux-planet/mcp-is-dead-cf16b667ba6d"><em>MCP is Dead</em></a> argues that MCP can add complexity to practical workflows. I think “dead” is a deliberately provocative title rather than a technical conclusion, but the criticism is worth reading.</p>
+
+  <p>A protocol can standardize communication and still leave people with the annoying work around it: choosing a server, installing it, authenticating it, checking whether it works, and cleaning it up when it does not.</p>
+
+  <p>That is the gap Agent Reach is trying to address. Not by replacing every protocol, but by handling more of the messy life around tools.</p>
+
+  <h2>My final mental model</h2>
+  <p>LeanIX helps an organization understand its architecture. Artifactory helps a software organization manage packages and build artifacts. MCP defines a way for an AI application to communicate with external servers.</p>
+
+  <p>Agent Reach helps an agent find and use whichever access route is practical right now.</p>
+
+  <p>That makes it closest to a package manager, service registry, and health checker for agent capabilities—not because it is literally any one of those things, but because those analogies explain the job it is doing.</p>
+
+  <blockquote>The internet is not a platform. It is a pile of platforms wearing a trench coat. Agent Reach is an attempt to give the agent a map.</blockquote>
+
+  <h2>References</h2>
+  <ul class="references">
+    <li><a href="https://github.com/Panniantong/Agent-Reach/blob/main/docs/README_en.md">Agent Reach: English README and design philosophy</a></li>
+    <li><a href="https://github.com/Panniantong/Agent-Reach/blob/main/docs/install.md">Agent Reach: installation and upstream-tool model</a></li>
+    <li><a href="https://modelcontextprotocol.io/docs/learn/architecture">MCP: official architecture overview</a></li>
+    <li><a href="https://modelcontextprotocol.io/docs/getting-started/intro">MCP: official introduction</a></li>
+    <li><a href="https://www.leanix.net/en/blog/sap-leanix-diagrams-1">SAP LeanIX: diagrams and visualizing an IT landscape</a></li>
+    <li><a href="https://www.leanix.net/en/enterprise-architecture/features">SAP LeanIX: enterprise architecture features</a></li>
+    <li><a href="https://docs.jfrog.com/artifactory/docs/artifact-management">JFrog Artifactory: artifact management</a></li>
+    <li><a href="https://medium.com/ux-planet/mcp-is-dead-cf16b667ba6d">Nick Babich: “MCP is Dead”</a></li>
+  </ul>
+
+  <p class="disclosure"><strong>Disclosure:</strong> AI was involved in the research and drafting of this article. I checked the factual descriptions against the linked project and product documentation. The architecture, ecosystem, LeanIX, and Artifactory diagrams are original explanatory drawings made for this draft. The MCP image is linked from its original resource and should be reviewed for reuse permissions before publication.</p>
+</main>
+<script>
+(() => {
+  const root=document.getElementById('inline-arch'); if(!root)return;
+  const copy={agent:['SELECTED: AI AGENT','The agent owns the question. Agent Reach makes useful routes available.'],guidance:['SELECTED: SKILL INSTRUCTIONS','Instructions teach the agent which upstream command or service to use.'],registry:['SELECTED: REGISTRY + DOCTOR','Candidate backends are listed, probed, and reported with a usable route or fix.'],target:['SELECTED: TARGET PLATFORM','The request ultimately reaches the public service or data source through the selected route.']};
+  let broken=false,running=false;
+  const q=s=>root.querySelector(s), detail=k=>{if(!copy[k])return;q('#ia-detail-title').textContent=copy[k][0];q('#ia-detail-copy').textContent=copy[k][1];root.querySelectorAll('.ia-selected').forEach(x=>x.classList.remove('ia-selected'));root.querySelector(`[data-ia-detail="${k}"]`).classList.add('ia-selected');};
+  const status=(t,c='')=>{q('#ia-status-text').textContent=t;q('#ia-dot').className='ia-dot '+c;};
+  const add=(t,c='')=>{const x=document.createElement('span');x.className=c;x.textContent=t;q('#ia-log').appendChild(x);};
+  root.querySelectorAll('[data-ia-detail]').forEach(x=>x.addEventListener('click',()=>detail(x.dataset.iaDetail)));
+  root.querySelectorAll('[data-ia-route]').forEach(x=>x.addEventListener('click',()=>{root.querySelectorAll('.ia-route').forEach(y=>y.classList.remove('ia-active'));x.classList.add('ia-active');add('selected route: '+x.dataset.iaRoute,'route');}));
+  q('#ia-break').addEventListener('click',()=>{broken=!broken;q('#ia-break').textContent=broken?'Restore primary':'Break primary';q('#ia-cli-pill').textContent=broken?'FAILED':'PRIMARY';q('#ia-cli-pill').className='ia-pill '+(broken?'fail':'');q('[data-ia-route="cli"]').classList.toggle('ia-failed',broken);status(broken?'primary unavailable · fallback ready':'system ready',broken?'warn':'');q('#ia-log').innerHTML='';add(broken?'doctor: primary CLI failed':'doctor: primary CLI restored',broken?'warn':'ok');});
+  q('#ia-run').addEventListener('click',()=>{if(running)return;running=true;q('#ia-log').innerHTML='';status('request in flight');const steps=broken?['request: agent asks for platform information','check: primary installed tool is unavailable','check: browser session is healthy','route: use the browser session instead','result: source returned to agent']:['request: agent asks for platform information','check: available routes loaded','check: primary installed tool is healthy','route: use the installed tool directly','result: source returned to agent'];steps.forEach((s,i)=>setTimeout(()=>{add(s,i===steps.length-1?'ok':s.includes('browser')||s.includes('unavailable')?'warn':s.includes('route:')?'route':'');if(i===steps.length-1){status('request complete');running=false;}},i*500));});
+  q('#ia-reset').addEventListener('click',()=>{broken=false;running=false;q('#ia-break').textContent='Break primary';q('#ia-cli-pill').textContent='PRIMARY';q('#ia-cli-pill').className='ia-pill';q('[data-ia-route="cli"]').classList.remove('ia-failed');q('#ia-log').textContent='$ waiting for a request...';status('system ready');detail('agent');});
+})();
+</script>
+</body>
+</html>
