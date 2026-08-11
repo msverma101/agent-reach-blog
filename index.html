@@ -54,6 +54,29 @@
     .inline-arch .ia-copy { color:#9ab0bb; font-size:13px; min-height:43px; }
     .inline-arch .ia-log { color:#b9d9df; font:11px/1.65 monospace; min-height:70px; }
     .inline-arch .ia-log .ok { color:#67e39a; display:block; }.inline-arch .ia-log .warn { color:#ffbe55; display:block; }.inline-arch .ia-log .route { color:#37d9e7; display:block; }
+    .blog-arch { padding:24px; font-family:"DM Sans",Arial,sans-serif; }
+    .blog-arch .ba-kicker,.blog-arch .ba-badge,.blog-arch .ba-code { font-family:"Space Mono",monospace; }
+    .blog-arch .ba-kicker { color:#75e9f2; font-size:11px; font-weight:700; letter-spacing:.1rem; text-transform:uppercase; }
+    .blog-arch .ba-title { color:#f1fbfc; font-size:21px; line-height:1.2; margin:5px 0 0; }
+    .blog-arch .ba-copy { color:#9ab0bb; font-size:13px; line-height:1.45; margin:5px 0 0; }
+    .blog-arch .ba-layer,.blog-arch .ba-route,.blog-arch .ba-target { background:linear-gradient(135deg,rgba(20,44,55,.96),rgba(10,25,33,.96)); border:1px solid rgba(141,187,198,.22); border-radius:14px; }
+    .blog-arch .ba-layer { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 20px; }
+    .blog-arch .ba-layer-body { display:flex; align-items:flex-start; gap:12px; }
+    .blog-arch .ba-badge { flex:none; padding:5px 9px; border:1px solid rgba(255,190,85,.4); border-radius:999px; color:#ffbe55; background:rgba(255,190,85,.13); font-size:10px; white-space:nowrap; }
+    .blog-arch .ba-code { padding:9px 11px; color:#c8edf1; background:#0a151c; border:1px solid rgba(141,187,198,.18); border-radius:9px; font-size:11px; white-space:nowrap; }
+    .blog-arch .ba-connector { height:30px; width:2px; margin:auto; position:relative; background:linear-gradient(#37d9e7,rgba(55,217,231,.3)); }
+    .blog-arch .ba-connector:after { content:""; position:absolute; bottom:-1px; left:-5px; border-left:4px solid transparent; border-right:4px solid transparent; border-top:6px solid #37d9e7; }
+    .blog-arch .ba-routing { display:flex; align-items:flex-start; gap:12px; margin:3px 0 11px; }
+    .blog-arch .ba-routing .ba-copy { margin-top:4px; }
+    .blog-arch .ba-routes { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .blog-arch .ba-route { min-height:126px; padding:16px; }
+    .blog-arch .ba-route-icon { color:#65e9f3; font-size:19px; margin-bottom:11px; }
+    .blog-arch .ba-route h4 { color:#eaf8fa; font-size:14px; margin:0; }
+    .blog-arch .ba-route p { color:#9ab0bb; font-size:12px; line-height:1.45; margin:5px 0 0; }
+    .blog-arch .ba-target { display:flex; align-items:center; gap:15px; padding:19px 20px; }
+    .blog-arch .ba-orbit { width:43px; height:43px; flex:none; display:grid; place-items:center; border:1px solid rgba(55,217,231,.48); border-radius:50%; color:#66edf4; background:rgba(55,217,231,.08); }
+    .blog-arch .ba-target .ba-copy { margin-top:4px; } .blog-arch .ba-target .ba-code { margin-left:auto; }
+    @media (max-width:700px) { .blog-arch { padding:17px 14px; } .blog-arch .ba-layer,.blog-arch .ba-target { display:block; } .blog-arch .ba-code { display:inline-block; margin-top:12px; white-space:normal; } .blog-arch .ba-routes { grid-template-columns:1fr; } .blog-arch .ba-route { min-height:auto; } .blog-arch .ba-target { text-align:center; } .blog-arch .ba-orbit { margin:0 auto 12px; } .blog-arch .ba-target .ba-code { margin-left:0; } }
     figcaption { color:var(--muted); font:13px/1.5 Arial, Helvetica, sans-serif; padding:12px 0 17px; }
     .note { background:var(--soft); border-radius:8px; padding:18px 20px; margin:28px 0; font:15px/1.55 Arial, Helvetica, sans-serif; }
     code { background:#f0f0f0; border-radius:4px; padding:2px 5px; font-size:.9em; }
@@ -94,22 +117,24 @@
   <p>The project’s own description is useful here: Agent Reach handles selection, installation, health checks, and routing, while the agent uses the upstream tools directly. In other words, it is less “a new web scraper” and more “someone put labels on the drawers and checked which ones still open.”</p>
 
   <h2>Try the architecture first</h2>
-  <p>Before the comparisons, here is the whole idea in one picture. Click a layer to see its job, run a request, then break the primary route to watch the fallback take over.</p>
-  <div class="inline-arch" id="inline-arch">
-    <div class="ia-toolbar"><button class="ia-primary" id="ia-run">▶ Run request</button><button class="ia-danger" id="ia-break">Break primary</button><button id="ia-reset">Reset</button><span class="ia-status"><i class="ia-dot" id="ia-dot"></i><span id="ia-status-text">system ready</span></span></div>
-    <div class="ia-layer ia-selected" data-ia-detail="agent"><div><span class="ia-num">01 / AGENT</span><h3>AI agent</h3><p>Decides what information is needed.</p></div><span class="ia-code">“find this out”</span></div>
-    <div class="ia-connector"></div>
-    <div class="ia-layer" data-ia-detail="guidance"><div><span class="ia-num">02 / GUIDANCE</span><h3>Skill instructions</h3><p>Explains which route to try and how to call it.</p></div><span class="ia-code">SKILL.md</span></div>
-    <div class="ia-connector"></div>
-    <div class="ia-layer" data-ia-detail="registry"><div><span class="ia-num">03 / REGISTRY</span><h3>Channel registry + doctor</h3><p>Maps platforms to candidates and checks what works.</p></div><span class="ia-code">install → probe → select</span></div>
-    <div class="ia-connector"></div>
-    <div class="ia-route-label">04 / ROUTING — choose a way to reach the source</div>
-    <div class="ia-routes"><div class="ia-route ia-active" data-ia-route="cli"><span class="ia-pill" id="ia-cli-pill">PRIMARY</span><strong>Installed command-line tools</strong><span>Small programs that read a service directly. Examples: GitHub’s <code>gh</code>, YouTube’s <code>yt-dlp</code>.</span></div><div class="ia-route" data-ia-route="browser"><span class="ia-pill warn">FALLBACK</span><strong>Existing browser session</strong><span>Useful when a website requires the user’s logged-in browser context.</span></div><div class="ia-route" data-ia-route="mcp"><span class="ia-pill warn">OPTIONAL</span><strong>Connected service</strong><span>A remote or local service that exposes a standard tool interface, such as MCP.</span></div></div>
-    <div class="ia-connector"></div>
-    <div class="ia-layer" data-ia-detail="target"><div><span class="ia-num">05 / TARGET</span><h3>Target platform</h3><p>The public service or data source the agent needed to reach.</p></div><span class="ia-code">GitHub · YouTube · Reddit · web</span></div>
-    <div class="ia-lower"><div class="ia-box"><div class="ia-box-title" id="ia-detail-title">SELECTED: AI AGENT</div><div class="ia-copy" id="ia-detail-copy">The agent owns the question. Agent Reach makes useful routes available.</div></div><div class="ia-box"><div class="ia-box-title">WHAT JUST HAPPENED?</div><div class="ia-log" id="ia-log">Click “Run request” to watch the route being selected.</div></div></div>
+  <p>Before the comparisons, here is the whole idea in one picture: five layers connect the agent’s request to the platform-specific tools that can fulfill it.</p>
+  <div class="inline-arch blog-arch" aria-label="Agent Reach five-layer architecture">
+    <div class="ba-kicker">● &nbsp; System overview</div>
+    <div class="ba-title">Agent-Reach Architecture</div>
+    <p class="ba-copy">A layered path from AI agents to the web platforms they need to reach.</p>
+    <div class="ba-connector" aria-hidden="true"></div>
+    <div class="ba-layer"><div class="ba-layer-body"><span class="ba-badge">01 / LAYER</span><div><h3 class="ba-title">AI Agent Layer</h3><p class="ba-copy">The developer-facing AI environments that initiate a request.</p></div></div><div class="ba-code">Claude Code · Cursor · OpenClaw</div></div>
+    <div class="ba-connector" aria-hidden="true"></div>
+    <div class="ba-layer"><div class="ba-layer-body"><span class="ba-badge">02 / LAYER</span><div><h3 class="ba-title">Context &amp; Mapping Layer</h3><p class="ba-copy">Maps agent intent to the correct capability and execution path.</p></div></div><div class="ba-code">SKILL.md / Dynamic Skill Mapping</div></div>
+    <div class="ba-connector" aria-hidden="true"></div>
+    <div class="ba-layer"><div class="ba-layer-body"><span class="ba-badge">03 / CORE</span><div><h3 class="ba-title">Core Engine</h3><p class="ba-copy">Checks the local environment, probes available backends, and selects a workable route.</p></div></div><div class="ba-code">Agent-Reach CLI / MCP</div></div>
+    <div class="ba-connector" aria-hidden="true"></div>
+    <div class="ba-routing"><span class="ba-badge">04 / ROUTING</span><div><h3 class="ba-title">Upstream &amp; Routing Layer</h3><p class="ba-copy">The core engine branches through the best available integration route.</p></div></div>
+    <div class="ba-routes"><article class="ba-route"><div class="ba-route-icon">⌘</div><h4>Upstream CLIs</h4><p><code>gh</code>, <code>yt-dlp</code>, and other platform-native command tools.</p></article><article class="ba-route"><div class="ba-route-icon">◉</div><h4>Scrapers &amp; Sessions</h4><p><code>xreach</code> plus locally stored session cookies when appropriate.</p></article><article class="ba-route"><div class="ba-route-icon">◎</div><h4>MCP Servers</h4><p>Specialized stdio handlers for structured external access.</p></article></div>
+    <div class="ba-connector" aria-hidden="true"></div>
+    <div class="ba-target"><div class="ba-orbit">◎</div><div><span class="ba-badge">05 / TARGET</span><h3 class="ba-title">Target Platforms</h3><p class="ba-copy">Public web services reached through the selected upstream capability.</p></div><div class="ba-code">GitHub · YouTube · Twitter/X · Reddit</div></div>
   </div>
-  <p class="note">This interactive explorer is inline in this local preview. Medium may require a static screenshot, GIF, or video when publishing because arbitrary JavaScript will not travel with pasted article text.</p>
+  <p class="note">This layered diagram is included in the local preview and in the standalone <a href="architecture.html">architecture page</a>. It is a conceptual model, not an official Agent Reach system diagram.</p>
 
   <figure class="legacy-figure">
     <svg viewBox="0 0 720 260" role="img" aria-label="An AI agent sends a research request to Agent Reach, which checks and routes it to upstream tools such as GitHub, web readers, search providers, and browser sessions.">
@@ -285,20 +310,5 @@
 
   <p class="disclosure"><strong>Disclosure:</strong> AI was involved in the research and drafting of this article. I checked the factual descriptions against the linked project and product documentation. The architecture, ecosystem, LeanIX, and Artifactory diagrams are original explanatory drawings made for this draft. The MCP image is linked from its original resource and should be reviewed for reuse permissions before publication.</p>
 </main>
-<script>
-(() => {
-  const root=document.getElementById('inline-arch'); if(!root)return;
-  const copy={agent:['SELECTED: AI AGENT','The agent owns the question. Agent Reach makes useful routes available.'],guidance:['SELECTED: SKILL INSTRUCTIONS','Instructions teach the agent which upstream command or service to use.'],registry:['SELECTED: REGISTRY + DOCTOR','Candidate backends are listed, probed, and reported with a usable route or fix.'],target:['SELECTED: TARGET PLATFORM','The request ultimately reaches the public service or data source through the selected route.']};
-  let broken=false,running=false;
-  const q=s=>root.querySelector(s), detail=k=>{if(!copy[k])return;q('#ia-detail-title').textContent=copy[k][0];q('#ia-detail-copy').textContent=copy[k][1];root.querySelectorAll('.ia-selected').forEach(x=>x.classList.remove('ia-selected'));root.querySelector(`[data-ia-detail="${k}"]`).classList.add('ia-selected');};
-  const status=(t,c='')=>{q('#ia-status-text').textContent=t;q('#ia-dot').className='ia-dot '+c;};
-  const add=(t,c='')=>{const x=document.createElement('span');x.className=c;x.textContent=t;q('#ia-log').appendChild(x);};
-  root.querySelectorAll('[data-ia-detail]').forEach(x=>x.addEventListener('click',()=>detail(x.dataset.iaDetail)));
-  root.querySelectorAll('[data-ia-route]').forEach(x=>x.addEventListener('click',()=>{root.querySelectorAll('.ia-route').forEach(y=>y.classList.remove('ia-active'));x.classList.add('ia-active');add('selected route: '+x.dataset.iaRoute,'route');}));
-  q('#ia-break').addEventListener('click',()=>{broken=!broken;q('#ia-break').textContent=broken?'Restore primary':'Break primary';q('#ia-cli-pill').textContent=broken?'FAILED':'PRIMARY';q('#ia-cli-pill').className='ia-pill '+(broken?'fail':'');q('[data-ia-route="cli"]').classList.toggle('ia-failed',broken);status(broken?'primary unavailable · fallback ready':'system ready',broken?'warn':'');q('#ia-log').innerHTML='';add(broken?'doctor: primary CLI failed':'doctor: primary CLI restored',broken?'warn':'ok');});
-  q('#ia-run').addEventListener('click',()=>{if(running)return;running=true;q('#ia-log').innerHTML='';status('request in flight');const steps=broken?['request: agent asks for platform information','check: primary installed tool is unavailable','check: browser session is healthy','route: use the browser session instead','result: source returned to agent']:['request: agent asks for platform information','check: available routes loaded','check: primary installed tool is healthy','route: use the installed tool directly','result: source returned to agent'];steps.forEach((s,i)=>setTimeout(()=>{add(s,i===steps.length-1?'ok':s.includes('browser')||s.includes('unavailable')?'warn':s.includes('route:')?'route':'');if(i===steps.length-1){status('request complete');running=false;}},i*500));});
-  q('#ia-reset').addEventListener('click',()=>{broken=false;running=false;q('#ia-break').textContent='Break primary';q('#ia-cli-pill').textContent='PRIMARY';q('#ia-cli-pill').className='ia-pill';q('[data-ia-route="cli"]').classList.remove('ia-failed');q('#ia-log').textContent='$ waiting for a request...';status('system ready');detail('agent');});
-})();
-</script>
 </body>
 </html>
