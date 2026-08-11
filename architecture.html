@@ -3,154 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agent Reach — Interactive Architecture</title>
+  <title>Agent Reach Architecture</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    :root { --ink:#e8f2f5; --muted:#9ab0bb; --line:#37d9e7; --panel:#10212a; --deep:#0a151c; --border:rgba(141,187,198,.22); --amber:#ffbe55; --green:#67e39a; --red:#ff7373; }
+    :root { --ink:#e8f2f5; --muted:#9ab0bb; --line:#37d9e7; --border:rgba(141,187,198,.22); --amber:#ffbe55; }
     * { box-sizing:border-box; }
-    body { margin:0; min-height:100vh; color:var(--ink); font-family:"DM Sans",sans-serif; background:#071016; background-image:linear-gradient(rgba(102,176,190,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(102,176,190,.055) 1px,transparent 1px); background-size:30px 30px; }
-    .wrapper { min-height:100vh; padding:32px 20px 60px; }
-    .shell { max-width:1080px; margin:auto; }
-    h1,h2,h3,p { margin-top:0; }
-    h1 { font-size:clamp(30px,5vw,54px); line-height:1.03; letter-spacing:-2px; margin-bottom:12px; }
-    h2 { font-size:20px; margin-bottom:7px; }
-    h3 { font-size:17px; margin-bottom:8px; }
-    p { color:var(--muted); line-height:1.5; }
-    .eyebrow { color:var(--line); font:700 12px "Space Mono",monospace; letter-spacing:1.5px; text-transform:uppercase; }
-    .subtitle { max-width:680px; font-size:17px; }
-    .rule { height:1px; background:linear-gradient(90deg,transparent,var(--line),transparent); margin:24px 0 30px; opacity:.7; }
-    .architecture-card { background:linear-gradient(135deg,rgba(20,44,55,.96),rgba(10,25,33,.96)); border:1px solid var(--border); border-radius:16px; box-shadow:0 16px 35px #0003; transition:transform .18s,border-color .18s,box-shadow .18s; }
-    .architecture-card:hover,.architecture-card.selected { transform:translateY(-3px); border-color:rgba(55,217,231,.75); box-shadow:0 18px 45px #0005,0 0 24px rgba(55,217,231,.1); }
-    button { color:var(--ink); font:600 14px "DM Sans",sans-serif; cursor:pointer; border:1px solid rgba(55,217,231,.45); background:rgba(55,217,231,.09); border-radius:9px; padding:10px 14px; }
-    button:hover { background:rgba(55,217,231,.18); border-color:var(--line); }
-    button.primary { background:var(--line); color:#071016; border-color:var(--line); }
-    button.danger { border-color:rgba(255,115,115,.6); color:#ffb5b5; background:rgba(255,115,115,.08); }
-    button.danger.active { background:rgba(255,115,115,.2); }
-    .toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:0 0 22px; }
-    .toolbar .status { margin-left:auto; color:var(--muted); font:12px "Space Mono",monospace; }
-    .status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--green); margin-right:7px; box-shadow:0 0 10px var(--green); }
-    .status-dot.warn { background:var(--amber); box-shadow:0 0 10px var(--amber); }
-    .status-dot.fail { background:var(--red); box-shadow:0 0 10px var(--red); }
-    .layer { padding:20px 24px; display:flex; justify-content:space-between; align-items:center; gap:20px; cursor:pointer; }
-    .layer-main { display:flex; gap:16px; align-items:flex-start; }
-    .number { color:var(--line); font:700 12px "Space Mono",monospace; padding-top:4px; }
-    .layer p { margin-bottom:0; }
-    .layer-code { color:#c8edf1; font:13px/1.6 "Space Mono",monospace; background:rgba(0,0,0,.16); border:1px solid rgba(141,187,198,.18); border-radius:10px; padding:11px 14px; white-space:nowrap; }
-    .connector { height:35px; display:flex; justify-content:center; position:relative; }
-    .connector:before { content:""; width:2px; background:linear-gradient(var(--line),rgba(55,217,231,.25)); }
-    .connector:after { content:""; position:absolute; bottom:-1px; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid var(--line); }
-    .route-heading { display:flex; align-items:center; gap:14px; margin:0 0 14px; }
-    .route-heading p { margin-bottom:0; }
-    .route-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; }
-    .route-card { padding:42px 18px 18px; cursor:pointer; min-height:175px; position:relative; }
-    .route-icon { width:36px; height:36px; display:grid; place-items:center; border-radius:10px; color:var(--line); background:rgba(55,217,231,.1); font-size:19px; margin-bottom:16px; }
-    .route-card p { font-size:14px; margin-bottom:0; }
-    .route-card .pill { position:absolute; top:15px; right:15px; color:var(--green); font:700 9px/1 "Space Mono",monospace; letter-spacing:.04em; }
-    .route-card .pill.fallback { color:var(--amber); }
-    .route-card .pill.failed { color:var(--red); }
-    .route-card.active-route { border-color:var(--green); box-shadow:0 0 25px rgba(103,227,154,.12); }
-    .route-card.failed-route { border-color:var(--red); opacity:.72; }
-    .bottom-grid { display:grid; grid-template-columns:1.1fr .9fr; gap:15px; margin-top:30px; }
-    .panel { padding:20px 22px; }
-    .detail-title { color:var(--line); font-size:15px; font-family:"Space Mono",monospace; margin-bottom:12px; }
-    .detail-copy { min-height:76px; margin-bottom:0; }
-    .log { background:#061015; border:1px solid rgba(141,187,198,.18); border-radius:10px; padding:13px 15px; min-height:120px; font:12px/1.7 "Space Mono",monospace; color:#b9d9df; }
-    .log-line { display:block; }
-    .log-line.ok { color:var(--green); }
-    .log-line.warn { color:var(--amber); }
-    .log-line.route { color:var(--line); }
-    .legend { margin-top:18px; display:flex; gap:18px; flex-wrap:wrap; color:var(--muted); font-size:12px; }
-    .legend span:before { content:""; width:9px; height:9px; display:inline-block; border-radius:50%; margin-right:6px; background:var(--line); }
-    .legend .lg-green:before { background:var(--green); }.legend .lg-amber:before { background:var(--amber); }.legend .lg-red:before { background:var(--red); }
-    .footnote { margin-top:25px; color:#718992; font-size:12px; }
-    @media(max-width:700px) { .wrapper{padding:22px 12px 45px}.layer{display:block}.layer-code{margin-top:15px;white-space:normal}.route-grid,.bottom-grid{grid-template-columns:1fr}.toolbar .status{width:100%;margin-left:0}.connector{height:25px} }
+    body { margin:0; color:var(--ink); font-family:"DM Sans",sans-serif; background:#071016; background-image:linear-gradient(rgba(102,176,190,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(102,176,190,.055) 1px,transparent 1px); background-size:30px 30px; }
+    .app { min-height:100vh; padding:32px 20px 44px; }
+    .shell { width:100%; max-width:1080px; margin:auto; }
+    .kicker,.badge,.code { font-family:"Space Mono",monospace; }
+    .kicker { color:#75e9f2; font-size:12px; font-weight:700; letter-spacing:.12rem; text-transform:uppercase; }
+    h1,h2,h3,p { margin:0; } h1 { margin-top:12px; font-size:clamp(30px,5vw,54px); line-height:1.05; letter-spacing:-.04em; } h2 { font-size:21px; } h3 { font-size:16px; }
+    p { color:var(--muted); line-height:1.5; } .subtitle { max-width:680px; margin-top:9px; font-size:16px; } .rule { height:1px; margin-top:20px; background:linear-gradient(90deg,transparent,var(--line),transparent); }
+    .card { background:linear-gradient(135deg,rgba(20,44,55,.96),rgba(10,25,33,.96)); border:1px solid var(--border); border-radius:16px; box-shadow:0 16px 35px #0003; transition:transform .18s,border-color .18s,box-shadow .18s; }
+    .card:hover { transform:translateY(-3px); border-color:rgba(55,217,231,.62); box-shadow:0 18px 45px #0005,0 0 22px rgba(55,217,231,.08); }
+    main { margin-top:28px; } .layer { padding:20px 24px; display:flex; align-items:center; justify-content:space-between; gap:20px; } .layer-body { display:flex; align-items:flex-start; gap:16px; } .layer p { margin-top:5px; font-size:14px; }
+    .badge { flex:none; padding:6px 11px; border:1px solid rgba(255,190,85,.4); border-radius:999px; color:var(--amber); background:rgba(255,190,85,.13); font-size:11px; letter-spacing:.08em; white-space:nowrap; }
+    .code { padding:11px 14px; color:#c8edf1; background:#0a151c; border:1px solid rgba(141,187,198,.18); border-radius:10px; font-size:13px; white-space:nowrap; }
+    .connector { height:44px; display:flex; justify-content:center; position:relative; } .connector:before { content:""; width:2px; background:linear-gradient(var(--line),rgba(55,217,231,.3)); } .connector:after { content:""; position:absolute; bottom:-1px; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid var(--line); }
+    .route-heading { display:flex; align-items:center; gap:14px; margin-bottom:14px; } .route-heading p { margin-top:5px; font-size:14px; }
+    .route-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:15px; } .route { min-height:150px; padding:20px; } .route-icon { width:36px; height:36px; display:grid; place-items:center; border-radius:10px; color:#65e9f3; background:rgba(55,217,231,.1); font-size:20px; margin-bottom:16px; } .route p { margin-top:8px; font-size:13px; }
+    .target { margin-top:0; padding:24px; display:flex; align-items:center; gap:20px; } .orbit { width:60px; height:60px; flex:none; display:grid; place-items:center; border:1px solid rgba(55,217,231,.48); border-radius:50%; color:#66edf4; background:rgba(55,217,231,.08); box-shadow:0 0 28px rgba(55,217,231,.12); font-size:25px; } .target p { margin-top:5px; font-size:14px; } .target .badge { display:inline-block; margin-bottom:8px; }
+    footer { display:flex; justify-content:center; align-items:center; gap:12px; margin-top:30px; color:#7f9ba5; font:600 11px "Space Mono",monospace; letter-spacing:.1em; text-transform:uppercase; } .legend-line { width:36px; height:2px; position:relative; background:var(--line); } .legend-line:after { content:""; position:absolute; right:-1px; top:-3px; border-left:7px solid var(--line); border-top:4px solid transparent; border-bottom:4px solid transparent; }
+    @media(max-width:700px) { .app { padding:22px 12px 35px; } .layer,.target { display:block; } .layer .code { display:inline-block; margin-top:15px; white-space:normal; } .layer-body { gap:10px; } .route-grid { grid-template-columns:1fr; gap:10px; } .route { min-height:auto; } .target .orbit { margin:0 auto 18px; } .target { text-align:center; } .target .code { display:inline-block; margin-top:16px; white-space:normal; } footer { text-align:center; } }
   </style>
 </head>
 <body>
-  <div class="wrapper">
+  <div class="app">
     <header class="shell">
-      <div class="eyebrow">Interactive architecture / Agent Reach</div>
-      <h1>A living ledger for internet tools.</h1>
-      <p class="subtitle">Click a layer to inspect it. Run a request to watch the route activate. Then break the primary backend and see the fallback take over.</p>
+      <div class="kicker">● &nbsp; System overview</div>
+      <h1>Agent-Reach Architecture</h1>
+      <p class="subtitle">A layered path from AI agents to the web platforms they need to reach.</p>
       <div class="rule"></div>
     </header>
 
-    <main class="shell" aria-label="Interactive Agent Reach architecture">
-      <div class="toolbar">
-        <button class="primary" id="run-request">▶ Run simulated request</button>
-        <button class="danger" id="break-primary">Break primary backend</button>
-        <button id="reset">Reset</button>
-        <span class="status"><span id="status-dot" class="status-dot"></span><span id="status-text">system ready</span></span>
-      </div>
-
-      <section class="architecture-card layer selected" data-detail="agent">
-        <div class="layer-main"><span class="number">01 / AGENT</span><div><h2>AI agent</h2><p>Receives the user’s request and decides what information is needed.</p></div></div>
-        <div class="layer-code">“find this out”</div>
-      </section>
+    <main class="shell" aria-label="Agent Reach architecture flowchart">
+      <section class="card layer" aria-label="AI agent layer"><div class="layer-body"><span class="badge">01 / LAYER</span><div><h2>AI Agent Layer</h2><p>The developer-facing AI environments that initiate a request.</p></div></div><div class="code">Claude Code · Cursor · OpenClaw</div></section>
+      <div class="connector" aria-hidden="true"></div>
+      <section class="card layer" aria-label="Context and mapping layer"><div class="layer-body"><span class="badge">02 / LAYER</span><div><h2>Context &amp; Mapping Layer</h2><p>Maps agent intent to the correct capability and execution path.</p></div></div><div class="code">SKILL.md / Dynamic Skill Mapping</div></section>
+      <div class="connector" aria-hidden="true"></div>
+      <section class="card layer" aria-label="Core engine layer"><div class="layer-body"><span class="badge">03 / CORE</span><div><h2>Core Engine</h2><p>Checks the local environment, probes available backends, and selects a workable route.</p></div></div><div class="code">Agent-Reach CLI / MCP</div></section>
       <div class="connector" aria-hidden="true"></div>
 
-      <section class="architecture-card layer" data-detail="guidance">
-        <div class="layer-main"><span class="number">02 / GUIDANCE</span><div><h2>Skill instructions</h2><p>Explains which route to try and how to call it.</p></div></div>
-        <div class="layer-code">SKILL.md</div>
-      </section>
+      <section aria-label="Upstream and routing layer"><div class="route-heading"><span class="badge">04 / ROUTING</span><div><h2>Upstream &amp; Routing Layer</h2><p>The core engine branches through the best available integration route.</p></div></div><div class="route-grid">
+        <article class="card route"><div class="route-icon">⌘</div><h3>Upstream CLIs</h3><p><code>gh</code>, <code>yt-dlp</code>, and other platform-native command tools.</p></article>
+        <article class="card route"><div class="route-icon">◉</div><h3>Scrapers &amp; Sessions</h3><p><code>xreach</code> plus locally stored session cookies when appropriate.</p></article>
+        <article class="card route"><div class="route-icon">◎</div><h3>MCP Servers</h3><p>Specialized stdio handlers for structured external access.</p></article>
+      </div></section>
       <div class="connector" aria-hidden="true"></div>
-
-      <section class="architecture-card layer" data-detail="registry">
-        <div class="layer-main"><span class="number">03 / REGISTRY</span><div><h2>Channel registry + doctor</h2><p>Maps platforms to candidate backends and checks what actually works.</p></div></div>
-        <div class="layer-code">install → probe → select</div>
-      </section>
-      <div class="connector" aria-hidden="true"></div>
-
-      <section aria-label="Upstream access routes">
-        <div class="route-heading"><div><div class="eyebrow">04 / ROUTING</div><h2>Upstream access methods</h2><p>Agent Reach prepares these; the agent calls them.</p></div></div>
-        <div class="route-grid">
-          <article class="architecture-card route-card active-route" data-route="cli"><span class="pill" id="cli-pill">PRIMARY</span><div class="route-icon">⌘</div><h3>Installed command-line tools</h3><p>Small programs that read a service directly. Examples: GitHub’s <code>gh</code> and YouTube’s <code>yt-dlp</code>.</p></article>
-          <article class="architecture-card route-card" data-route="browser"><span class="pill fallback" id="browser-pill">FALLBACK</span><div class="route-icon">◉</div><h3>Existing browser session</h3><p>Useful when a website requires the user’s logged-in browser context.</p></article>
-          <article class="architecture-card route-card" data-route="mcp"><span class="pill fallback">OPTIONAL</span><div class="route-icon">◎</div><h3>Connected service</h3><p>A local or remote service that exposes a standard tool interface, such as MCP.</p></article>
-        </div>
-      </section>
-
-      <div class="connector" aria-hidden="true"></div>
-      <section class="route-grid" aria-label="Example destinations">
-        <article class="architecture-card route-card" data-detail="github"><div class="route-icon">◌</div><h3>GitHub</h3><p>Repositories, issues, pull requests, and code search.</p></article>
-        <article class="architecture-card route-card" data-detail="youtube"><div class="route-icon">▶</div><h3>YouTube</h3><p>Video metadata and subtitles through an upstream tool.</p></article>
-        <article class="architecture-card route-card" data-detail="web"><div class="route-icon">⌁</div><h3>Web</h3><p>Pages, feeds, semantic search, and other internet sources.</p></article>
-      </section>
-
-      <div class="bottom-grid">
-        <section class="architecture-card panel" aria-live="polite">
-          <div class="detail-title" id="detail-title">Selected: AI agent</div>
-          <p class="detail-copy" id="detail-copy">The agent owns the question. Agent Reach does not replace the agent’s reasoning; it helps make useful routes available.</p>
-        </section>
-        <section class="architecture-card panel">
-          <div class="detail-title">What just happened?</div>
-          <div class="log" id="log"><span class="log-line">$ Run a request to watch the route being selected...</span></div>
-        </section>
-      </div>
-      <div class="legend"><span class="lg-green">working route</span><span class="lg-amber">fallback / optional</span><span class="lg-red">failed route</span></div>
-      <p class="footnote">Conceptual model based on the Agent Reach project documentation. It is an explanatory interactive, not an official Agent Reach architecture diagram.</p>
+      <section class="card target" aria-label="Target platform layer"><div class="orbit">◎</div><div><span class="badge">05 / TARGET</span><h2>Target Platforms</h2><p>Public web services reached through the selected upstream capability.</p></div><div class="code">GitHub · YouTube · Twitter/X · Reddit</div></section>
     </main>
+    <footer class="shell"><span class="legend-line" aria-hidden="true"></span><span>Request and capability flow</span></footer>
   </div>
-
-  <script>
-    const details = {
-      agent: ["Selected: AI agent", "The agent owns the question. Agent Reach does not replace the agent’s reasoning; it helps make useful routes available."],
-      guidance: ["Selected: skill instructions", "The instructions teach an agent which upstream command or service to use for a platform and what setup may be required."],
-      registry: ["Selected: channel registry + doctor", "This is the control point: candidate backends are listed, probed, and reported with a usable route or a concrete fix."],
-      github: ["Selected: GitHub route", "A focused upstream tool can handle GitHub directly. Agent Reach’s job is to make that route discoverable and checked."],
-      youtube: ["Selected: YouTube route", "The agent can use a tool such as yt-dlp for video information or subtitles, rather than needing a new custom integration each time."],
-      web: ["Selected: web route", "Different web tasks can use different routes: a reader, RSS parser, semantic search provider, or browser session."],
-    };
-    const state = { broken:false, running:false };
-    const $ = (id) => document.getElementById(id);
-    const log = (message, cls="") => { const line=document.createElement("span"); line.className=`log-line ${cls}`; line.textContent=message; $("log").appendChild(line); $("log").scrollTop=$("log").scrollHeight; };
-    const setStatus = (text, cls="") => { $("status-text").textContent=text; $("status-dot").className=`status-dot ${cls}`; };
-    const selectDetail = (key) => { if (!details[key]) return; $("detail-title").textContent=details[key][0]; $("detail-copy").textContent=details[key][1]; document.querySelectorAll(".selected").forEach(el=>el.classList.remove("selected")); const source=document.querySelector(`[data-detail="${key}"]`); if(source) source.classList.add("selected"); };
-    document.querySelectorAll("[data-detail]").forEach(el=>el.addEventListener("click",()=>selectDetail(el.dataset.detail)));
-    document.querySelectorAll("[data-route]").forEach(el=>el.addEventListener("click",()=>{ document.querySelectorAll("[data-route]").forEach(x=>x.classList.remove("selected")); el.classList.add("selected"); log(`selected route: ${el.dataset.route}`,"route"); }));
-    $("break-primary").addEventListener("click",()=>{ state.broken=!state.broken; const button=$("break-primary"); button.classList.toggle("active",state.broken); button.textContent=state.broken?"Restore primary backend":"Break primary backend"; $("cli-pill").textContent=state.broken?"FAILED":"PRIMARY"; $("cli-pill").className=state.broken?"pill failed":"pill"; document.querySelector('[data-route="cli"]').classList.toggle("failed-route",state.broken); setStatus(state.broken?"primary unavailable · fallback ready":"system ready",state.broken?"warn":""); log(state.broken?"doctor: primary CLI failed":"doctor: primary CLI restored",state.broken?"warn":"ok"); });
-    $("run-request").addEventListener("click",()=>{ if(state.running)return; state.running=true; $("log").innerHTML=""; setStatus("request in flight",""); const steps=state.broken?["request: agent asks for platform information","check: primary installed tool is unavailable","check: browser session is healthy","route: use the browser session instead","result: source returned to agent"]:["request: agent asks for platform information","check: available routes loaded","check: primary installed tool is healthy","route: use the installed tool directly","result: source returned to agent"]; steps.forEach((s,i)=>setTimeout(()=>{log(s,i===steps.length-1?"ok":s.includes("browser")||s.includes("unavailable")?"warn":s.includes("route:")?"route":" "); if(i===steps.length-1){setStatus("request complete","ok");state.running=false;}},i*650)); });
-    $("reset").addEventListener("click",()=>{ state.broken=false;state.running=false;$("break-primary").classList.remove("active");$("break-primary").textContent="Break primary backend";$("cli-pill").textContent="PRIMARY";$("cli-pill").className="pill";document.querySelector('[data-route="cli"]').classList.remove("failed-route");document.querySelectorAll(".selected").forEach(el=>el.classList.remove("selected"));document.querySelector('[data-detail="agent"]').classList.add("selected");selectDetail("agent");$("log").innerHTML='<span class="log-line">$ waiting for a request...</span>';setStatus("system ready","");});
-  </script>
 </body>
 </html>

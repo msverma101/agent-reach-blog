@@ -2,7 +2,7 @@
 
 This repository contains the public interactive version of the Agent Reach article.
 
-- `index.html` — the article and interactive architecture explorer
+- `index.html` — the article and inline five-layer architecture diagram
 - `architecture.html` — standalone architecture demo
 - `agent-reach-blog.md` — Markdown source
 
